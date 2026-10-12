@@ -1,61 +1,59 @@
-# MEME BOX — Catálogo de memes
+# MEMEBOX — Catálogo de memes
 
-Site estático em HTML, CSS e JavaScript. A galeria só mostra as imagens listadas em `js/images.js`.
+Site estático feito em HTML, CSS e JavaScript, preparado para publicação no GitHub Pages.
 
-## Como colocar suas imagens
-1. Copie os arquivos de imagem para a pasta `images/`.
-2. Abra `js/images.js` em um editor de texto.
-3. Dentro de `window.MEME_IMAGES`, adicione uma linha por imagem:
+## Páginas
+
+- `index.html` — tela de entrada com as opções **SIM** e **NÃO**.
+- `catalog.html` — galeria de imagens e vídeos, com pesquisa.
+- `detail.html` — visualizador individual, com opções de baixar e imprimir imagens.
+
+## Tela de entrada e áudio
+
+- **SIM:** tenta tocar `audio/hino-corinthians.mp3`; quando o áudio termina, abre o catálogo.
+- **NÃO:** mostra a mensagem de reação e tenta tocar `audio/fase-corinthians.mp3`; depois segue para o hino e abre o catálogo.
+- A trilha de fundo da entrada é carregada de `audio/intro-video-audio.mp3`. Alguns navegadores bloqueiam reprodução automática com som; nesse caso, interaja com a página para liberar o áudio.
+- O vídeo do mascote usado atualmente pela tela de entrada é `intro-mascote.mp4`, na raiz do projeto. O arquivo WebM transparente só será usado se o HTML apontar explicitamente para ele.
+
+## Como adicionar imagens e vídeos
+
+1. Coloque os arquivos na pasta `images/`.
+2. Edite `js/images.js` e adicione uma entrada em `window.MEME_IMAGES`.
+
+Exemplo de imagem:
 
 ```js
-window.MEME_IMAGES = [
-  { src: "images/meme-1.jpg", title: "Meme 1" },
-  { src: "images/print-engracado.png", title: "Print engraçado" },
-];
+{ src: 'images/meu-meme.jpg', title: 'Meu meme', type: 'image' }
 ```
 
-4. Salve e abra `index.html` no navegador. Clique em uma imagem para abrir `detail.html` em outra aba.
+Exemplo de vídeo:
 
-## Ferramentas da página de imagem
-- Baixar no formato original.
-- Converter e baixar como PNG ou JPEG.
-- Abrir uma versão própria para impressão.
-- PINTE!: editor de desenho por cima da imagem, com pincel, carimbo cômico estilizado, borracha, tamanho, cor, desfazer, limpar e exportar para PNG.
+```js
+{ src: 'images/meu-video.mp4', title: 'Meu vídeo', type: 'video' }
+```
 
-## Importante sobre publicação
-Para usar publicamente, envie a pasta inteira para uma hospedagem de site estático (por exemplo, GitHub Pages ou Netlify). Os arquivos em `images/` precisam ser publicados junto com o site. Esta versão não faz upload automático de imagens e não precisa de banco de dados.
+Os nomes e caminhos precisam corresponder exatamente aos arquivos publicados, incluindo espaços, letras maiúsculas e extensão. O editor PINTE! é destinado a imagens, não a vídeos.
 
-## Estrutura
-- `index.html` — catálogo.
-- `detail.html` — página de imagem, abre em nova aba.
-- `css/style.css` — estilo geral.
-- `css/detail.css` — estilos do visualizador e editor.
-- `js/images.js` — lista de imagens a exibir.
-- `js/gallery.js` — pesquisa e catálogo.
-- `js/detail.js` — downloads, impressão e editor PINTE!.
-- `images/` — coloque suas imagens aqui.
+## Estrutura principal
 
+- `css/` — folhas de estilo.
+- `js/images.js` — lista de mídia exibida.
+- `js/gallery.js` — galeria e pesquisa.
+- `js/detail.js` — página individual, downloads e ferramentas de imagem.
+- `js/intro.js` — sequência de entrada e controle de áudio.
+- `js/sidekick.js` — mascote falante.
+- `audio/` — trilhas e efeitos sonoros.
+- `gifs/` — GIFs usados pelo mascote.
+- `images/` — imagens e vídeos da galeria.
 
-### Mascote falante
-O projeto inclui um mascote no canto inferior esquerdo que mostra GIFs aleatórios e comentários quando você interage com a página. Os GIFs ficam na pasta `gifs/`; mantenha essa pasta junto do restante do projeto.
+## Publicação
 
+No GitHub, abra **Settings → Pages** e configure a publicação a partir da branch principal (`main`) e da pasta raiz (`/ (root)`). Depois de salvar, aguarde a publicação do GitHub Pages.
 
-O mascote inclui 200 falas variadas de shitpost, memes, ironia e ragebait. Edite `js/sidekick.js` para personalizar as frases.
+O projeto é estático: não possui banco de dados nem upload de arquivos pelo próprio site. Para adicionar mídia, envie os arquivos ao repositório e atualize `js/images.js`.
 
+## Observações
 
-## Tela de entrada (nova)
-O `index.html` agora é a tela inicial com as opções SIM e NÃO.
-- **SIM:** toca `audio/hino-corinthians.mp3` e mostra a tela de carregamento até o áudio acabar; depois abre `catalog.html`.
-- **NÃO:** mostra “VAI SE FUDER, VITOR”, toca `audio/fase-corinthians.mp3`; quando esse áudio termina, toca o hino e mostra o carregamento até o fim, depois abre `catalog.html`.
-- O vídeo `intro-mascote.mp4` aparece na tela de entrada e o JavaScript tenta remover o fundo verde em tempo real.
-- O catálogo foi movido para `catalog.html`; os links de retorno da página do meme apontam para ele.
-
-Se quiser preservar seus memes cadastrados, mantenha/copie seu `js/images.js` atual para esta versão. Mantenha também as pastas `audio/` e o arquivo `intro-mascote.mp4`.
-
-
-### Vídeo do mascote com fundo removido
-O arquivo `intro-mascote-transparent.webm` já está com o fundo verde removido e transparência embutida. Ele é usado na tela de entrada. Mantenha esse arquivo na pasta raiz do projeto.
-
-
-## Mídia importada
-As imagens e vídeos do ZIP enviado foram adicionados à pasta `images/` e cadastrados automaticamente em `js/images.js`. Vídeos aparecem com prévia no catálogo e podem ser assistidos/baixados na página individual. O editor PINTE! é desativado para vídeos. A música de fundo do catálogo continua em looping.
+- Confira se todos os arquivos referenciados pelo HTML e JavaScript realmente existem no repositório.
+- Se trocar o vídeo do mascote, atualize o caminho em `index.html` para corresponder ao nome real do arquivo.
+- Mantenha os diretórios `audio/`, `gifs/`, `images/`, `css/` e `js/` ao publicar o site.
