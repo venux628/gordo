@@ -1,21 +1,23 @@
-/* MEMEBOX background music controller
-   Shared by catalog.html and detail.html. Keeps the same track position across page navigation
-   and asks for one explicit click only when the browser blocks autoplay. */
+/* MEMEBOX background music controller.
+   Persists playback position across catalog/detail navigation and retries safely
+   after a real user gesture when a browser blocks autoplay. */
 (() => {
   const audio = document.getElementById('catalogMusic');
   if (!audio) return;
 
   const KEY_TIME = 'memebox.music.currentTime';
   const KEY_ENABLED = 'memebox.music.enabled';
-  const KEY_VOLUME = 'memebox.music.volume';
-  const safeGet = (key) => { try { return sessionStorage.getItem(key); } catch (_) { return null; } };
-  const safeSet = (key, value) => { try { sessionStorage.setItem(key, String(value)); } catch (_) {} };
+  const safeGet = key => {
+    try { return sessionStorage.getItem(key); } catch (_) { return null; }
+  };
+  const safeSet = (key, value) => {
+    try { sessionStorage.setItem(key, String(value)); } catch (_) {}
+  };
 
   audio.loop = true;
   audio.preload = 'auto';
   audio.volume = 0.35;
 
-  // Show a small fallback only if the browser blocks automatic playback.
   let enableButton = document.getElementById('musicEnableButton');
   if (!enableButton) {
     enableButton = document.createElement('button');
@@ -34,52 +36,75 @@
   }
 
   const savedTime = Number(safeGet(KEY_TIME));
-  const wasEnabled = safeGet(KEY_ENABLED) === '1';
   if (Number.isFinite(savedTime) && savedTime >= 0) {
     const restorePosition = () => {
       if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        audio.currentTime = savedTime % audio.duration;
+        try { audio.currentTime = savedTime % audio.duration; } catch (_) {}
       }
     };
     if (audio.readyState >= 1) restorePosition();
     else audio.addEventListener('loadedmetadata', restorePosition, { once: true });
   }
 
-  let retrying = false;
+  let attemptPending = false;
+  let gestureWaiting = false;
+
   function savePosition() {
     if (Number.isFinite(audio.currentTime)) safeSet(KEY_TIME, audio.currentTime);
   }
+
   function onPlaySuccess() {
     safeSet(KEY_ENABLED, '1');
     enableButton.style.display = 'none';
     savePosition();
   }
+
   function showFallback() {
-    // Only show the button if the user has previously enabled music or playback was attempted.
     enableButton.style.display = 'inline-flex';
   }
+
   function tryPlay(fromGesture = false) {
-    if (retrying || (!fromGesture && !wasEnabled && safeGet(KEY_ENABLED) !== '1')) {
-      // Still make an initial attempt on the first page; if blocked, the first gesture will unlock it.
-      if (!fromGesture && safeGet(KEY_ENABLED) !== '1') {
-        // Initial autoplay attempt is useful on browsers that permit it.
-      } else return;
-    }
-    retrying = true;
-    const promise = audio.play();
-    if (promise && typeof promise.then === 'function') {
-      promise.then(() => {
-        onPlaySuccess();
-      }).catch(() => {
-        showFallback();
-      }).finally(() => { retrying = false; });
-    } else {
+    if (!audio.paused) {
       onPlaySuccess();
-      retrying = false;
+      return;
     }
+    if (attemptPending) {
+      // Do not lose the first click if the initial autoplay attempt is still settling.
+      if (fromGesture) gestureWaiting = true;
+      return;
+    }
+
+    attemptPending = true;
+    let playback;
+    try {
+      playback = audio.play();
+    } catch (_) {
+      attemptPending = false;
+      showFallback();
+      retryIfGestureWasWaiting();
+      return;
+    }
+
+    Promise.resolve(playback).then(() => {
+      onPlaySuccess();
+    }).catch(() => {
+      showFallback();
+    }).finally(() => {
+      attemptPending = false;
+      retryIfGestureWasWaiting();
+    });
+  }
+
+  function retryIfGestureWasWaiting() {
+    if (!gestureWaiting) return;
+    gestureWaiting = false;
+    if (audio.paused) tryPlay(true);
   }
 
   enableButton.addEventListener('click', () => tryPlay(true));
+  audio.addEventListener('playing', onPlaySuccess);
+  audio.addEventListener('error', showFallback);
+
   const gestureRetry = () => {
     if (audio.paused) tryPlay(true);
   };
@@ -94,6 +119,6 @@
     if (audio.paused) tryPlay(false);
   });
 
-  // Try on every page load; browsers that block it will expose the fallback button.
+  // Try on load; if autoplay is blocked, show a clear button instead of failing silently.
   tryPlay(false);
 })();
