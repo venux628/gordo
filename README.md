@@ -1,4 +1,4 @@
-# MEMEBOX — Catálogo de memes
+# DOXGORDON — Catálogo de memes
 
 Site estático feito em HTML, CSS e JavaScript, preparado para publicação no GitHub Pages.
 
