@@ -108,7 +108,7 @@ document.getElementById('noButton').addEventListener('click', async () => {
     // Mesmo se o navegador bloquear o áudio, a sequência não fica travada.
     window.setTimeout(continueToHymn, 1600);
   }
-}
+});
 
 // O MP4 é reproduzido sem som; a trilha da entrada é controlada separadamente.
 if (video) {
