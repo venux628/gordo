@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151515">
+  <title>MEME BOX — Acervo</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="catalog.html"><span>MEME<span class="muted">BOX</span></span></a>
+    <div class="top-tag">SEU ACERVO • SEM ENROLAÇÃO</div>
+  </header>
+  <main class="page">
+    <section class="collection-head">
+      <div><p class="kicker">CATÁLOGO</p><h2>Todos os memes <span id="count" class="count">0</span></h2></div>
+      <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Procurar meme..." aria-label="Procurar meme"></label>
+    </section>
+    <div id="gallery" class="gallery"></div>
+    <section id="empty" class="empty">
+      <div class="empty-icon">▧</div><h3>A pasta ainda está vazia</h3>
+      <p>Coloque suas imagens dentro de <code>images/</code> e adicione os nomes dos arquivos em <code>js/images.js</code>.</p>
+      <div class="empty-example">Exemplo: <code>"images/meu-meme.jpg"</code></div>
+    </section>
+  </main>
+  <footer><span class="logo small">MEMEBOX</span><span>Feito para compartilhar a zoeira.</span></footer>
+  <aside id="memeSidekick" aria-live="polite" aria-label="Comentário aleatório">
+    <div class="sidekick-gif-wrap"><img class="sidekick-gif" src="gifs/3dgifmaker00789.gif" alt="" /></div>
+    <div class="sidekick-bubble">...</div>
+  </aside>
+  <audio id="catalogMusic" src="audio/musica-catalogo.mp3" loop preload="auto"></audio>
+  <script src="js/sidekick.js"></script>
+  <script src="js/images.js"></script>
+  <script src="js/gallery.js"></script>
+  <script src="js/music-controller.js"></script>
+</body>
+</html>

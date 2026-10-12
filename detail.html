@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151515">
+  <title>Visualizar meme — MEME BOX</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/detail.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="catalog.html"><span>MEME<span class="muted">BOX</span></span></a>
+    <a class="back-link" href="catalog.html">← Voltar ao catálogo</a>
+  </header>
+  <main class="detail-page">
+    <div class="detail-title"><div><p class="kicker">VISUALIZADOR</p><h1 id="imageTitle">Seu meme</h1></div><span class="pill">MODO MEME</span></div>
+    <div class="detail-layout">
+      <section class="preview-panel">
+        <div class="preview-top"><span class="live-dot"></span> PRÉ-VISUALIZAÇÃO <span id="imageDimensions"></span></div>
+        <div class="image-stage"><img id="mainImage" alt="Imagem selecionada"><video id="mainVideo" hidden controls playsinline></video></div>
+        <div class="stage-note">A imagem original não é alterada. As edições ficam em uma cópia.</div>
+      </section>
+      <aside class="actions-panel">
+        <h2>O que vamos fazer?</h2>
+        <p class="panel-sub">Escolhe a sua ferramenta de caos.</p>
+        <button class="action-card" id="downloadOpen"><span class="action-icon">↓</span><span><b>Baixar imagem</b><small>Original, PNG ou JPEG (vídeos: original)</small></span><span class="chevron">›</span></button>
+        <button class="action-card" id="printButton"><span class="action-icon">▤</span><span><b>Imprimir</b><small>Preparar para impressão</small></span><span class="chevron">›</span></button>
+        <button class="action-card paint-card" id="paintOpen"><span class="action-icon">✎</span><span><b>PINTE! — editor meme</b><small>Desenhe por cima da imagem</small></span><span class="chevron">›</span></button>
+        <div class="tip"><b>💡 Dica:</b> no editor, baixe o resultado para salvar a versão rabiscada.</div>
+      </aside>
+    </div>
+  </main>
+  <dialog id="downloadDialog" class="modal">
+    <button class="modal-close" data-close="downloadDialog" aria-label="Fechar">×</button>
+    <p class="kicker">EXPORTAR ARQUIVO</p><h2>Baixar imagem</h2><p class="modal-copy">Escolha o formato que você precisa.</p>
+    <div class="format-grid">
+      <button class="format-option" data-format="original"><b>Arquivo original</b><small>Preserva o formato</small><span>↧</span></button>
+      <button class="format-option" data-format="png"><b>PNG</b><small>Boa qualidade</small><span>↧</span></button>
+      <button class="format-option" data-format="jpeg"><b>JPEG</b><small>Arquivo mais leve</small><span>↧</span></button>
+    </div>
+    <p class="tiny-note">A conversão para PNG/JPEG é feita no seu navegador.</p>
+  </dialog>
+
+  <dialog id="paintDialog" class="paint-modal">
+    <div class="paint-header"><div><p class="kicker">LABORATÓRIO DE MEMES</p><h2>PINTE! <span>✎</span></h2></div><button class="modal-close inline-close" data-close="paintDialog" aria-label="Fechar">×</button></div>
+    <div class="paint-toolbar">
+      <div class="tool-group">
+        <button class="tool active" data-tool="pen" title="Pincel">✎ <span>Pincel</span></button>
+        <button class="tool" data-tool="eraser" title="Borracha">▱ <span>Borracha</span></button>
+      </div>
+      <label class="control-label">Tamanho <input id="brushSize" type="range" min="4" max="54" value="18"></label>
+      <label class="control-label">Cor <input id="brushColor" type="color" value="#ff3d6e"></label>
+      <button class="tool" id="undoButton">↶ <span>Desfazer</span></button>
+      <button class="tool" id="clearButton">⌫ <span>Limpar</span></button>
+    </div>
+    <div class="canvas-wrap"><canvas id="paintCanvas"></canvas></div>
+    <div class="paint-footer"><p>A imagem original continua intacta.</p><div><button class="button secondary" data-close="paintDialog">Cancelar</button><button class="button primary" id="savePaint">↓ Baixar desenho</button></div></div>
+  </dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <aside id="memeSidekick" aria-live="polite" aria-label="Comentário aleatório">
+    <div class="sidekick-gif-wrap"><img class="sidekick-gif" src="gifs/3dgifmaker00789.gif" alt="" /></div>
+    <div class="sidekick-bubble">...</div>
+  </aside>
+  <script src="js/sidekick.js"></script>
+  <audio id="catalogMusic" src="audio/musica-catalogo.mp3" loop preload="auto"></audio>
+  <script src="js/images.js"></script>
+  <script src="js/detail.js"></script>
+  <script src="js/music-controller.js"></script>
+</body>
+</html>
