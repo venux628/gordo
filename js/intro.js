@@ -6,6 +6,7 @@ const secondAudio = document.getElementById('secondAudio');
 const progressBar = document.getElementById('progressBar');
 const loadingNote = document.getElementById('loadingNote');
 const video = document.getElementById('mascotVideo');
+const introMusicButton = document.getElementById('introMusicButton');
 
 const introBackgroundAudio = new Audio(new URL('audio/intro-video-audio.mp3', document.baseURI).href);
 introBackgroundAudio.loop = true;
@@ -42,9 +43,18 @@ async function startIntroBackground() {
       return;
     }
     introBackgroundStarted = true;
+    if (introMusicButton) {
+      introMusicButton.hidden = true;
+      introMusicButton.setAttribute('aria-pressed', 'true');
+    }
   } catch (_) {
-    // Se o navegador bloquear o som automático, uma interação tentará novamente.
+    // O navegador pode bloquear autoplay com som antes da primeira interação.
     introBackgroundStarted = false;
+    if (introMusicButton && !questionScreen.hidden) {
+      introMusicButton.hidden = false;
+      introMusicButton.textContent = '♫ Ativar música';
+      introMusicButton.setAttribute('aria-pressed', 'false');
+    }
   } finally {
     introBackgroundAttemptPending = false;
     if (introStartRequested && !questionScreen.hidden && !introBackgroundStarted) {
@@ -206,6 +216,31 @@ function playReactionAndContinue() {
   }
 }
 
+if (introMusicButton) {
+  introMusicButton.addEventListener('click', () => {
+    // Calling play() directly in the button's click handler preserves the user gesture
+    // required by browsers that block audible autoplay.
+    introStartRequested = false;
+    let playback;
+    try {
+      playback = introBackgroundAudio.play();
+    } catch (_) {
+      introMusicButton.textContent = '♫ Tentar música novamente';
+      return;
+    }
+    Promise.resolve(playback).then(() => {
+      introBackgroundStarted = true;
+      introMusicButton.hidden = true;
+      introMusicButton.setAttribute('aria-pressed', 'true');
+    }).catch(() => {
+      introBackgroundStarted = false;
+      introMusicButton.hidden = false;
+      introMusicButton.textContent = '♫ Tentar música novamente';
+      introMusicButton.setAttribute('aria-pressed', 'false');
+    });
+  });
+}
+
 document.getElementById('yesButton').addEventListener('click', playFirstAndLoad);
 document.getElementById('noButton').addEventListener('click', playReactionAndContinue);
 
@@ -219,7 +254,8 @@ if (video) {
   if (video.readyState >= 2) playMascot();
 }
 
-const unlockIntroAudio = () => {
+const unlockIntroAudio = (event) => {
+  if (event && introMusicButton && introMusicButton.contains(event.target)) return;
   if (!questionScreen.hidden) {
     introStartRequested = true;
     startIntroBackground();
