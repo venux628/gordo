@@ -9,8 +9,21 @@ function renderGallery() {
   const visible = items.filter(item => (item.title || item.src.split('/').pop()).toLocaleLowerCase('pt-BR').includes(query));
   gallery.innerHTML = '';
   count.textContent = items.length;
-  empty.hidden = items.length > 0;
   gallery.hidden = visible.length === 0;
+  empty.hidden = visible.length > 0;
+
+  const emptyTitle = empty.querySelector('h3');
+  const emptyDescription = empty.querySelector('p');
+  const emptyExample = empty.querySelector('.empty-example');
+  if (items.length === 0) {
+    emptyTitle.textContent = 'A pasta ainda está vazia';
+    emptyDescription.innerHTML = 'Coloque suas imagens dentro de <code>images/</code> e adicione os nomes dos arquivos em <code>js/images.js</code>.';
+    emptyExample.hidden = false;
+  } else if (visible.length === 0) {
+    emptyTitle.textContent = 'Nenhum meme encontrado';
+    emptyDescription.textContent = 'Não achei nada com esse nome. Tente outra palavra na busca.';
+    emptyExample.hidden = true;
+  }
   visible.forEach(item => {
     const title = item.title || decodeURIComponent(item.src.split('/').pop()).replace(/\.[^.]+$/, '');
     const video = isVideoItem(item);
