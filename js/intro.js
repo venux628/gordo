@@ -5,14 +5,16 @@ const firstAudio = document.getElementById('firstAudio');
 const secondAudio = document.getElementById('secondAudio');
 const progressBar = document.getElementById('progressBar');
 const loadingNote = document.getElementById('loadingNote');
+const video = document.getElementById('mascotVideo');
 
-// Música de fundo da tela inicial.
 const introBackgroundAudio = new Audio(new URL('audio/intro-video-audio.mp3', document.baseURI).href);
 introBackgroundAudio.loop = true;
 introBackgroundAudio.volume = 0.35;
 introBackgroundAudio.preload = 'auto';
+
 let introBackgroundStarted = false;
 let introBackgroundAttemptPending = false;
+let loadingSequenceStarted = false;
 
 async function startIntroBackground() {
   if (introBackgroundStarted || introBackgroundAttemptPending || questionScreen.hidden) return;
@@ -20,8 +22,8 @@ async function startIntroBackground() {
   try {
     await introBackgroundAudio.play();
     introBackgroundStarted = true;
-  } catch (error) {
-    // Chrome/Edge/Safari podem bloquear áudio com som até existir interação do usuário.
+  } catch (_) {
+    // Navegadores podem bloquear autoplay com som até haver interação.
     introBackgroundStarted = false;
   } finally {
     introBackgroundAttemptPending = false;
@@ -34,76 +36,101 @@ function stopIntroBackground() {
   introBackgroundStarted = false;
 }
 
-// Tenta assim que o documento carrega e quando a aba volta a ficar visível.
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', startIntroBackground, { once: true });
-} else {
-  startIntroBackground();
-}
-window.addEventListener('pageshow', startIntroBackground);
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) startIntroBackground();
-});
-
-// Se o navegador bloquear o autoplay, a primeira interação libera a reprodução.
-const unlockIntroAudio = () => {
-  if (!questionScreen.hidden) startIntroBackground();
-};
-document.addEventListener('pointerdown', unlockIntroAudio, { passive: true });
-document.addEventListener('keydown', unlockIntroAudio);
-
 function showScreen(screen) {
   questionScreen.hidden = screen !== questionScreen;
   reactionScreen.hidden = screen !== reactionScreen;
   loadingScreen.hidden = screen !== loadingScreen;
 }
+
 function goToLoading() {
   showScreen(loadingScreen);
   loadingNote.textContent = 'Carregando consequências...';
   progressBar.style.width = '0%';
-  const update = () => {
+
+  const updateProgress = () => {
     if (Number.isFinite(firstAudio.duration) && firstAudio.duration > 0) {
-      progressBar.style.width = `${Math.min(100, firstAudio.currentTime / firstAudio.duration * 100)}%`;
+      const percent = Math.min(100, (firstAudio.currentTime / firstAudio.duration) * 100);
+      progressBar.style.width = percent + '%';
     }
   };
-  firstAudio.addEventListener('timeupdate', update);
-  firstAudio.addEventListener('ended', () => {
-    firstAudio.removeEventListener('timeupdate', update);
+
+  const finish = () => {
+    firstAudio.removeEventListener('timeupdate', updateProgress);
+    firstAudio.removeEventListener('ended', finish);
     progressBar.style.width = '100%';
     loadingNote.textContent = 'Entrada autorizada. Boa sorte.';
-    window.setTimeout(() => { window.location.href = 'catalog.html'; }, 700);
-  }, { once: true });
+    window.setTimeout(() => {
+      window.location.href = 'catalog.html';
+    }, 700);
+  };
+
+  firstAudio.addEventListener('timeupdate', updateProgress);
+  firstAudio.addEventListener('ended', finish, { once: true });
+  updateProgress();
 }
-function playFirstAndLoad() {
+
+async function playFirstAndLoad() {
+  if (loadingSequenceStarted) return;
+  loadingSequenceStarted = true;
   stopIntroBackground();
   showScreen(loadingScreen);
+  loadingNote.textContent = 'Preparando o áudio...';
   progressBar.style.width = '0%';
+  firstAudio.pause();
   firstAudio.currentTime = 0;
-  const playPromise = firstAudio.play();
-  if (playPromise && typeof playPromise.catch === 'function') {
-    playPromise.catch(() => {
-      loadingNote.textContent = 'O navegador bloqueou o áudio. Clique para tentar novamente.';
-      const retry = () => { firstAudio.play().then(goToLoading).catch(() => {}); };
-      loadingScreen.addEventListener('click', retry, { once: true });
-    });
+
+  try {
+    await firstAudio.play();
+    goToLoading();
+  } catch (_) {
+    loadingSequenceStarted = false;
+    loadingNote.textContent = 'O navegador bloqueou o áudio. Clique aqui para tentar novamente.';
+    loadingScreen.addEventListener('click', playFirstAndLoad, { once: true });
   }
-  goToLoading();
 }
+
 document.getElementById('yesButton').addEventListener('click', playFirstAndLoad);
-document.getElementById('noButton').addEventListener('click', () => {
+
+document.getElementById('noButton').addEventListener('click', async () => {
+  if (loadingSequenceStarted) return;
   stopIntroBackground();
   showScreen(reactionScreen);
+  secondAudio.pause();
   secondAudio.currentTime = 0;
-  secondAudio.play().then(() => {
-    secondAudio.addEventListener('ended', () => {
-      playFirstAndLoad();
-    }, { once: true });
-  }).catch(() => {
-    // Se o navegador bloquear o áudio, ainda mantém a brincadeira e segue para a sequência.
-    window.setTimeout(playFirstAndLoad, 1600);
+
+  const continueToHymn = () => playFirstAndLoad();
+  secondAudio.addEventListener('ended', continueToHymn, { once: true });
+
+  try {
+    await secondAudio.play();
+  } catch (_) {
+    secondAudio.removeEventListener('ended', continueToHymn);
+    // Mesmo se o navegador bloquear o áudio, a sequência não fica travada.
+    window.setTimeout(continueToHymn, 1600);
+  }
+}
+
+// O MP4 é reproduzido sem som; a trilha da entrada é controlada separadamente.
+if (video) {
+  video.addEventListener('canplay', () => {
+    video.play().catch(() => {});
   });
+}
+
+const unlockIntroAudio = () => {
+  if (!questionScreen.hidden) startIntroBackground();
+};
+document.addEventListener('pointerdown', unlockIntroAudio, { passive: true });
+document.addEventListener('keydown', unlockIntroAudio);
+window.addEventListener('pageshow', () => {
+  if (!document.hidden) startIntroBackground();
+});
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) startIntroBackground();
 });
 
-// O vídeo já foi processado com transparência (WebM/VP9 alpha), então não precisa de chroma key no navegador.
-const video = document.getElementById('mascotVideo');
-video.addEventListener('canplay', () => video.play().catch(() => {}));
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startIntroBackground, { once: true });
+} else {
+  startIntroBackground();
+}
